@@ -60,6 +60,10 @@ def get_all_reviews(movie_id):
             # Stopping loop at final page or after 5,000 pages
             if result['pageInfo']['hasNextPage']==False or i > 4999:
                 break
+            elif i > 5000:
+                break
+            if len(reviews)>140:
+                return reviews #XX
             # Pausing for a minute after 10,000 reviews (100 pages)
             i += 1
             if i%1000==0:
@@ -95,38 +99,29 @@ def parse_reviews(save_name, movie_id, movie_year, meter_score):
                 for i in range(N)]
     data['user'] = users
 
-    # Review date
-    date = [reviews[i]['updateDate'][:9] for i in range(N)]
-    data['post_date'] = date
+    # Finding reviewers who have user id's 
+    users = [
+        reviews[i]['user']['userId']
+        if len(reviews[i]['user']['userId'])==6
+        else np.nan
+        for i in range(len(reviews))
+        ]
+    N =2;meter_score = 2
 
-    # Verified
-    verified = [reviews[i]['isVerified'] for i in range(N)]
-    verified = [int(x) for x in verified]
-    data['verified'] = verified
+    data = {}
+    data['movie_name']  = [save_name]*N
+    data['movie_year']  = [movie_year]*N
+    data['meter_score'] = [meter_score]*N
 
-    # Super reviewer
-    super_reviewer = [reviews[i]['isSuperReviewer'] for i in range(N)]
-    super_reviewer = [int(x) for x in super_reviewer]
-    data['super_reviewer'] = super_reviewer
-
-    # Spoilers
-    spoilers = [reviews[i]['hasSpoilers'] for i in range(N)]
-    spoilers = [int(x) for x in spoilers]
-    data['spoilers'] = spoilers
-
-    # Profanity
-    profanity = [reviews[i]['hasProfanity'] for i in range(N)]
-    profanity = [int(x) for x in profanity]
-    data['profanity'] = profanity
-
-    # Written Review
-    review         = [reviews[i]['review'] for i in range(N)]
-    data['review'] = review
-
-    # Star rating
-    star_rating    = [reviews[i]['rating'] for i in range(N)]
-    star_rating    = [float(x.replace('STAR_','').replace('_','.')) for x in star_rating]
-    data['rating'] = star_rating
+    # Get various columns
+    data['user'].extend(users)
+    data['super_reviewer'].extend([int(rev['isSuperReviewer']) for rev in reviews])
+    data['profanity'].extend([int(rev['hasProfanity']) for rev in reviews])
+    data['review'].extend([rev['review'] for rev in reviews])
+    
+    star_rating = [rev['rating'] for rev in reviews]
+    star_rating = [float(x.replace('STAR_','').replace('_','.')) for x in star_rating]
+    data['rating'].extend(star_rating)
 
     # Creating dataframe of reviews
     df = pd.DataFrame(data)
@@ -146,3 +141,12 @@ if __name__ == '__main__':
 
     end = time.time()
     print(f'Time to run:{(start-end)/3600:.2f} hrs')
+
+
+
+# When to use a default dict
+# Counting how many of each letter we have:
+string = 'aababcaccbbabababbacccabababcaa'
+counts = defaultdict(int)
+for s in string:
+    counts[s] += 1
