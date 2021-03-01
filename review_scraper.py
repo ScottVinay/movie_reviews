@@ -114,10 +114,10 @@ def parse_reviews(save_name, movie_id, movie_year, meter_score):
     data['meter_score'] = [meter_score]*N
 
     # Get various columns
-    data['user'].extend(users)
-    data['super_reviewer'].extend([int(rev['isSuperReviewer']) for rev in reviews])
-    data['profanity'].extend([int(rev['hasProfanity']) for rev in reviews])
-    data['review'].extend([rev['review'] for rev in reviews])
+    data['user'] = users
+    data['super_reviewer'] = [int(rev['isSuperReviewer']) for rev in reviews]
+    data['profanity'] = [int(rev['hasProfanity']) for rev in reviews]
+    data['review'] = [rev['review'] for rev in reviews]
     
     star_rating = [rev['rating'] for rev in reviews]
     star_rating = [float(x.replace('STAR_','').replace('_','.')) for x in star_rating]
